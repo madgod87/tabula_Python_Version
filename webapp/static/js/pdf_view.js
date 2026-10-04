@@ -92,6 +92,15 @@ Tabula.Selection = Backbone.Model.extend({
       width: rp.width * scale, // not used by Tabula right now, but used in the UI elsewhere
       height: rp.height * scale, // not used by Tabula right now, but used in the UI elsewhere
     });
+
+    var dims = this.attributes.getDims();
+    if (dims.columns) {
+      this.set('columns', dims.columns.map(function(c) {
+        return (c * scale) + (rp.left * scale);
+      }));
+    } else {
+      this.unset('columns');
+    }
   },
 
   toCoords: function(){
@@ -109,6 +118,9 @@ Tabula.Selection = Backbone.Model.extend({
       width:  this.get('width'),
       height:  this.get('height')
     };
+    if (this.has('columns')) {
+      selection_coords.columns = this.get('columns');
+    }
     return selection_coords;
   },
 

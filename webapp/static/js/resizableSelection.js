@@ -19,6 +19,8 @@
       'mousedown .resize-handle': 'mouseDownResize',
       'mousemove': 'mouseMoveResize',
       'mouseup': 'mouseUpResize',
+      'dblclick': 'dblClickAddColumn',
+      'dblclick .custom-column-line': 'dblClickRemoveColumn',
       'click button[name=close]': 'remove'
     },
 
@@ -53,6 +55,31 @@
        $(document).on({
          mouseup: _.bind(this.mouseUpResize, this)
        });
+    },
+
+    dblClickAddColumn: function (e) {
+      if ($(e.target).hasClass('custom-column-line') || $(e.target).hasClass('resize-handle') || $(e.target).is('button')) return;
+      var offset = this.$el.offset();
+      var c = e.pageX - offset.left;
+      var $line = $('<div class="custom-column-line"></div>').css({
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: c + 'px',
+        width: '4px',
+        marginLeft: '-2px',
+        backgroundColor: 'rgba(255,0,0,0.6)',
+        cursor: 'pointer',
+        zIndex: 100
+      });
+      this.$el.append($line);
+      this.trigger('resize', this.getDims()); // trigger a change so pdf_view.js catches it
+    },
+
+    dblClickRemoveColumn: function (e) {
+      $(e.target).remove();
+      this.trigger('resize', this.getDims());
+      return false; // prevent event bubbling
     },
 
     render: function() {
@@ -90,6 +117,15 @@
           height: this.$el.css('box-sizing') == "border-box" ? this.$el.outerHeight() : this.$el.height()
         }
       };
+
+      var cols = [];
+      this.$el.find('.custom-column-line').each(function() {
+        cols.push(parseFloat($(this).css('left')));
+      });
+      if (cols.length > 0) {
+        this.cachedDims.columns = cols;
+      }
+
       return this.cachedDims;
     },
 
